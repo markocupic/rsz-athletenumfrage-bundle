@@ -36,7 +36,7 @@ class MaintainModuleAthletenumfrage
     public function truncateAthletenumfrage(): void
     {
         // Truncate table
-        Database::getInstance()->execute('TRUNCATE TABLE tl_athletenumfrage_backup');
+        Database::getInstance()->execute('TRUNCATE TABLE tl_athletenumfrage');
 
     }
 }
