@@ -3,9 +3,9 @@
 /**
  * @copyright  Marko Cupic 2020 <m.cupic@gmx.ch>
  * @author     Marko Cupic
- * @package    Office365Bundle for Schule Ettiswil
+ * @package    RSZ AthletenumfrageBundle for Schule Ettiswil
  * @license    MIT
- * @see        https://github.com/markocupic/office365-bundle
+ * @see        https://github.com/markocupic/rsz-athletenumfrage-bundle
  *
  */
 
