@@ -1,8 +1,5 @@
 <?php
-require_once(TL_ROOT . '/system/modules/mcupic_be_athletenumfrage/fpdf/MyPdf.php');
-/**
- *
- */
+
 $GLOBALS['TL_DCA']['tl_athletenumfrage'] = [
     // Config
     'config'   => [
