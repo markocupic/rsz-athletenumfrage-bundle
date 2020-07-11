@@ -81,14 +81,13 @@ $GLOBALS['TL_DCA']['tl_athletenumfrage'] = [
     // Fields
     'fields'   => [
         'id'                          => [
-            'sql'   => "int(10) unsigned NOT NULL auto_increment"
+            'sql' => "int(10) unsigned NOT NULL auto_increment"
         ],
-        'pid' => array
-        (
-            'foreignKey'              => 'tl_user.username',
-            'sql'                     => "int(10) unsigned NOT NULL default 0",
-            'relation'                => array('type'=>'belongsTo', 'load'=>'lazy')
-        ),
+        'pid'                         => [
+            'foreignKey' => 'tl_user.username',
+            'sql'        => "int(10) unsigned NOT NULL default 0",
+            'relation'   => ['type' => 'belongsTo', 'load' => 'lazy']
+        ],
         'tableOverview'               => [
             'search'               => true,
             'sorting'              => true,
@@ -259,10 +258,24 @@ $GLOBALS['TL_DCA']['tl_athletenumfrage'] = [
     ]
 ];
 
+/**
+ * Class tl_athletenumfrage
+ */
 class tl_athletenumfrage extends Backend
 {
+    /**
+     * @var mixed|null
+     */
     public $pid;
+
+    /**
+     * @var string
+     */
     public $username;
+
+    /**
+     * @var string
+     */
     public $strTable;
 
     /**
@@ -271,16 +284,21 @@ class tl_athletenumfrage extends Backend
     public function __construct()
     {
         parent::__construct();
+
         $this->strTable = "tl_athletenumfrage";
+
         $this->import('BackendUser', 'User');
-        if ($this->Input->get('id'))
+
+        if (\Contao\Input::get('id'))
         {
-            $objUser = $this->Database->prepare("SELECT pid FROM tl_athletenumfrage WHERE id=?")
-                ->execute($this->Input->get('id'));
-            $objUser2 = $this->Database->prepare("SELECT id, username FROM tl_user WHERE id=?")
-                ->execute($objUser->pid);
-            $this->username = $objUser2->username;
-            $this->pid = $objUser2->id;
+            $objAthletenumfrage = \Contao\Database::getInstance()->prepare("SELECT pid FROM tl_athletenumfrage WHERE id=?")
+                ->execute(\Contao\Input::get('id'));
+
+            $objAthlet = \Contao\Database::getInstance()->prepare("SELECT id, username FROM tl_user WHERE id=?")
+                ->execute($objAthletenumfrage->pid);
+
+            $this->username = $objAthlet->username;
+            $this->pid = $objAthlet->id;
         }
     }
 
@@ -289,7 +307,7 @@ class tl_athletenumfrage extends Backend
      */
     public function route()
     {
-        if ($this->Input->get('action') === 'drucken')
+        if (\Contao\Input::get('action') === 'drucken')
         {
             $this->drucken();
         }
@@ -302,7 +320,7 @@ class tl_athletenumfrage extends Backend
     public function filterList()
     {
         //nur Admins haben Zugriff auf fremde Profile
-        $objUser = $this->Database->prepare("SELECT id FROM tl_athletenumfrage WHERE pid=?")
+        $objUser = \Contao\Database::getInstance()->prepare("SELECT id FROM tl_athletenumfrage WHERE pid=?")
             ->execute($this->User->id);
 
         $this->User->funktion = is_array($this->User->funktion) ? $this->User->funktion : [];
@@ -320,20 +338,20 @@ class tl_athletenumfrage extends Backend
      */
     public function createProfiles()
     {
-        $objAthlete = $this->Database->prepare("SELECT id, username FROM tl_user WHERE funktion LIKE ? ORDER BY dateOfBirth")
+        $objAthlete = \Contao\Database::getInstance()->prepare("SELECT id, username FROM tl_user WHERE funktion LIKE ? ORDER BY dateOfBirth")
             ->execute("%Athlet%");
         while ($objAthlete->next())
         {
-            $objAthletenumfrage = $this->Database->prepare("SELECT id FROM tl_athletenumfrage WHERE pid=?")
+            $objAthletenumfrage = \Contao\Database::getInstance()->prepare("SELECT id FROM tl_athletenumfrage WHERE pid=?")
                 ->execute($objAthlete->id);
 
             if (!$objAthletenumfrage->numRows)
             {
                 $set = [
-                    'pid' => $objAthlete->id,
+                    'pid'      => $objAthlete->id,
                     'username' => $objAthlete->username
                 ];
-                $this->Database->prepare("INSERT INTO  tl_athletenumfrage %s")
+                \Contao\Database::getInstance()->prepare("INSERT INTO  tl_athletenumfrage %s")
                     ->set($set)
                     ->execute();
             }
@@ -345,7 +363,7 @@ class tl_athletenumfrage extends Backend
      */
     public function checkPermission()
     {
-        if ($this->Input->get("action") == "drucken" || $this->Input->get("act") == "edit" || $this->Input->get("act") == "show" || $this->Input->get("act") == "delete")
+        if (\Contao\Input::get("action") === "drucken" || \Contao\Input::get("act") === "edit" || \Contao\Input::get("act") === "show" || \Contao\Input::get("act") === "delete")
         {
             if ($this->User->isAdmin)
             {
@@ -397,10 +415,14 @@ class tl_athletenumfrage extends Backend
         return '<a href="' . $this->addToUrl($href . '&amp;id=' . $row['id']) . '" title="drucken"' . $attributes . '>' . $this->generateImage($icon, $label) . '</a> ';
     }
 
-    //LABEL_CALLBACK
+    /**
+     * @param $row
+     * @param $label
+     * @return mixed
+     */
     public function labelCallback($row, $label)
     {
-        $result = $this->Database->prepare("SELECT trainerkommentar FROM tl_athletenumfrage WHERE id=?")
+        $result = \Contao\Database::getInstance()->prepare("SELECT trainerkommentar FROM tl_athletenumfrage WHERE id=?")
             ->execute($row["id"]);
         if (trim($result->trainerkommentar) != "")
         {
@@ -426,9 +448,9 @@ class tl_athletenumfrage extends Backend
      */
     public function tableOverviewInputFieldCallback()
     {
-        $mySql = $this->Database->prepare("SELECT * FROM " . $this->strTable . " WHERE id=?")
+        $mySql = \Contao\Database::getInstance()->prepare("SELECT * FROM " . $this->strTable . " WHERE id=?")
             ->limit(1)
-            ->execute($this->Input->get('id'));
+            ->execute(\Contao\Input::get('id'));
         $row = $mySql->fetchAssoc();
         $i = 0;
         $output = '
@@ -461,9 +483,8 @@ class tl_athletenumfrage extends Backend
      */
     public function drucken()
     {
-
         $objAthletenumfrage = Markocupic\RszAthletenumfrageBundle\Model\AthletenumfrageModel::findByPk(\Contao\Input::get('id'));
-        if($objAthletenumfrage !== null)
+        if ($objAthletenumfrage !== null)
         {
             \Contao\Controller::loadDataContainer('tl_athletenumfrage');
             \Contao\Controller::loadLanguageFile('tl_athletenumfrage');
@@ -473,7 +494,7 @@ class tl_athletenumfrage extends Backend
 
             /** @var Markocupic\RszAthletenumfrageBundle\Docx\Athletenumfrage $objPrint */
             $objPrint = \Contao\System::getContainer()->get('Markocupic\RszAthletenumfrageBundle\Docx\Athletenumfrage');
-            $objPrint->print($objAthletenumfrage, $arrDca,  $arrLang);
+            $objPrint->print($objAthletenumfrage, $arrDca, $arrLang);
         }
     }
 }
