@@ -1,31 +1,12 @@
 <?php
 
 /**
- * Contao Open Source CMS
- * Copyright (C) 2005-2010 Leo Feyer
- *
- * Formerly known as TYPOlight Open Source CMS.
- *
- * This program is free software: you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation, either
- * version 3 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program. If not, please visit the Free
- * Software Foundation website at <http://www.gnu.org/licenses/>.
- *
- * PHP version 5
- * @copyright  Marko Cupic 2010
+ * @copyright  Marko Cupic 2020 <m.cupic@gmx.ch>
  * @author     Marko Cupic
- * @package    my_steckbriefe
- * @license    GNU
- * @filesource
+ * @package    RSZ AthletenumfrageBundle for Schule Ettiswil
+ * @license    MIT
+ * @see        https://github.com/markocupic/rsz-athletenumfrage-bundle
+ *
  */
 
 
@@ -45,7 +26,7 @@ $GLOBALS['TL_LANG']['tl_athletenumfrage']['username'] = ['Name', ''];
 $GLOBALS['TL_LANG']['tl_athletenumfrage']['ziele_indoor'] = ['Indoor-Ziele ' . $int_next_year, 'Welches sind ganz konkret deine Indoor-Ziele im nächsten Jahr? Erkläre in mehreren deutschen Sätzen!'];
 $GLOBALS['TL_LANG']['tl_athletenumfrage']['ziele_outdoor'] = ['Outdoor-Ziele ' . $int_next_year, 'Welches sind ganz konkret deine Outdoor-Ziele im nächsten Jahr? Erkläre in mehreren deutschen Sätzen!'];
 $GLOBALS['TL_LANG']['tl_athletenumfrage']['ziele_wettkampf'] = ['Wettkampf-Ziele ' . $int_next_year, 'Welches sind ganz konkret deine Wettkampf-Ziele im nächsten Jahr? Erkläre in mehreren deutschen Sätzen!'];
-$GLOBALS['TL_LANG']['tl_athletenumfrage']['ziele_allgemein'] = ['Algemeine Ziele ' . $int_next_year, 'Hast du weitere Ziele im nächsten Jahr (mental, schulisch,...)? Erkläre in mehreren deutschen Sätzen!'];
+$GLOBALS['TL_LANG']['tl_athletenumfrage']['ziele_allgemein'] = ['Allgemeine Ziele ' . $int_next_year, 'Hast du weitere Ziele im nächsten Jahr (mental, schulisch,...)? Erkläre in mehreren deutschen Sätzen!'];
 $GLOBALS['TL_LANG']['tl_athletenumfrage']['fortschritte'] = ['Erzielte Fortschritte ' . $int_last_year, 'Wo hast du im vergangenen Jahr besonders Fortschritte gemacht? Beschreibe!'];
 $GLOBALS['TL_LANG']['tl_athletenumfrage']['anz_trainings'] = ['Anzahl Trainings pro Woche', 'Wie oft trainierst du durchschnittlich in der Woche?'];
 $GLOBALS['TL_LANG']['tl_athletenumfrage']['trainingsspass'] = ['Freude am Trainieren', 'Wie viel Freude bereitet dir das leistungsorientierte Klettern?'];

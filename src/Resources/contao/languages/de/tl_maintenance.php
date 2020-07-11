@@ -9,7 +9,6 @@
  *
  */
 
-/**
- * Back end modules
- */
-$GLOBALS['TL_LANG']['MOD']['tl_athletenumfrage'] = ['Athletenumfrage', 'Nimm dir einige Minuten Zeit für die Athletenumfrage!'];
+
+$GLOBALS['TL_LANG']['tl_maintenance_jobs']['rsz_athletenumfrage']['0'] = "Athletenumfrage löschen";
+$GLOBALS['TL_LANG']['tl_maintenance_jobs']['rsz_athletenumfrage']['1'] = "Löscht alle Einträge in tl_athletenumfrage.";

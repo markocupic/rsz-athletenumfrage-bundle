@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * @copyright  Marko Cupic 2020 <m.cupic@gmx.ch>
+ * @author     Marko Cupic
+ * @package    RSZ AthletenumfrageBundle for Schule Ettiswil
+ * @license    MIT
+ * @see        https://github.com/markocupic/rsz-athletenumfrage-bundle
+ *
+ */
+
 $GLOBALS['TL_DCA']['tl_athletenumfrage'] = [
     // Config
     'config'   => [
@@ -43,13 +52,12 @@ $GLOBALS['TL_DCA']['tl_athletenumfrage'] = [
                 'label' => &$GLOBALS['TL_LANG']['tl_athletenumfrage']['edit'],
                 'href'  => 'act=edit',
                 'icon'  => 'edit.gif'
-                //'button_callback'     => array('tl_user', 'editUser')
             ],
             'drucken' => [
-                'href'            => 'act2=drucken',
+                'href'            => 'action=drucken',
                 'label'           => 'drucken',
                 'title'           => 'drucken',
-                'icon'            => 'system/modules/mcupic_be_athletenumfrage/html/printer.png',
+                'icon'            => 'bundles/markocupicrszathletenumfrage/printer.png',
                 'button_callback' => ['tl_athletenumfrage', 'printerIcon']
             ],
             'show'    => [
@@ -73,12 +81,14 @@ $GLOBALS['TL_DCA']['tl_athletenumfrage'] = [
     // Fields
     'fields'   => [
         'id'                          => [
-            'label' => ['ID'],
             'sql'   => "int(10) unsigned NOT NULL auto_increment"
         ],
-        'pid'                         => [
-            'sql' => "int(10) unsigned NOT NULL default '0'"
-        ],
+        'pid' => array
+        (
+            'foreignKey'              => 'tl_user.username',
+            'sql'                     => "int(10) unsigned NOT NULL default 0",
+            'relation'                => array('type'=>'belongsTo', 'load'=>'lazy')
+        ),
         'tableOverview'               => [
             'search'               => true,
             'sorting'              => true,
@@ -255,6 +265,9 @@ class tl_athletenumfrage extends Backend
     public $username;
     public $strTable;
 
+    /**
+     * tl_athletenumfrage constructor.
+     */
     public function __construct()
     {
         parent::__construct();
@@ -271,49 +284,68 @@ class tl_athletenumfrage extends Backend
         }
     }
 
+    /**
+     *
+     */
     public function route()
     {
-        if ($this->Input->get('act2') == 'drucken')
+        if ($this->Input->get('action') === 'drucken')
         {
             $this->drucken();
         }
     }
 
-    //on_load_callback
+    /**
+     * Filter list for athletes
+     * On load callback
+     */
     public function filterList()
     {
         //nur Admins haben Zugriff auf fremde Profile
         $objUser = $this->Database->prepare("SELECT id FROM tl_athletenumfrage WHERE pid=?")
             ->execute($this->User->id);
+
         $this->User->funktion = is_array($this->User->funktion) ? $this->User->funktion : [];
+
         if (in_array("Trainer", $this->User->funktion) || $this->User->isAdmin)
         {
             return;
         }
+
         $GLOBALS['TL_DCA']['tl_athletenumfrage']['list']['sorting']['filter'] = [['pid=?', $this->User->id]];
     }
 
+    /**
+     * Creates from every athlete a blanco profile, if there is no
+     */
     public function createProfiles()
     {
-        //erstellt von allen Benutzern ein Blanko-Profil, wenn noch keines vorhanden ist.
-        $objUser = $this->Database->prepare("SELECT id, username FROM tl_user WHERE funktion LIKE ? ORDER BY dateOfBirth")
+        $objAthlete = $this->Database->prepare("SELECT id, username FROM tl_user WHERE funktion LIKE ? ORDER BY dateOfBirth")
             ->execute("%Athlet%");
-        while ($objUser->next())
+        while ($objAthlete->next())
         {
-            $objUser2 = $this->Database->prepare("SELECT id FROM tl_athletenumfrage WHERE pid=?")
-                ->execute($objUser->id);
-            if (!$objUser2->next())
+            $objAthletenumfrage = $this->Database->prepare("SELECT id FROM tl_athletenumfrage WHERE pid=?")
+                ->execute($objAthlete->id);
+
+            if (!$objAthletenumfrage->numRows)
             {
-                $objUser2 = $this->Database->prepare("INSERT INTO  tl_athletenumfrage (pid,username) VALUES (?,?)")
-                    ->execute($objUser->id, $objUser->username);
+                $set = [
+                    'pid' => $objAthlete->id,
+                    'username' => $objAthlete->username
+                ];
+                $this->Database->prepare("INSERT INTO  tl_athletenumfrage %s")
+                    ->set($set)
+                    ->execute();
             }
         }
     }
 
+    /**
+     * Verhindert, dass Athleten sich gegenseitig die Daten ansehen können
+     */
     public function checkPermission()
     {
-        //Verhindert, dass Athleten sich gegenseitig die Daten ansehen k�nnen
-        if ($this->Input->get("act2") == "drucken" || $this->Input->get("act") == "edit" || $this->Input->get("act") == "show" || $this->Input->get("act") == "delete")
+        if ($this->Input->get("action") == "drucken" || $this->Input->get("act") == "edit" || $this->Input->get("act") == "show" || $this->Input->get("act") == "delete")
         {
             if ($this->User->isAdmin)
             {
@@ -327,17 +359,22 @@ class tl_athletenumfrage extends Backend
             {
                 return;
             }
-            $this->redirect("contao/main.php?do=tl_athletenumfrage");
+            $this->redirect("contao?do=tl_athletenumfrage");
         }
     }
 
+    /**
+     * Set palette
+     */
     public function setPalette()
     {
+        // Trainer
         if (in_array("Trainer", $this->User->funktion) || $this->User->isAdmin)
         {
             $GLOBALS['TL_DCA']['tl_athletenumfrage']['palettes']['default'] = $GLOBALS['TL_DCA']['tl_athletenumfrage']['palettes']['trainer'];
         }
-        //Athleten
+
+        // Athlete
         if ($this->pid == $this->User->id)
         {
             $GLOBALS['TL_DCA']['tl_athletenumfrage']['palettes']['default'] = $GLOBALS['TL_DCA']['tl_athletenumfrage']['palettes']['athlete'];
@@ -345,7 +382,16 @@ class tl_athletenumfrage extends Backend
         }
     }
 
-    //BUTTON_CALLBACK
+    /**
+     * Button callback
+     * @param $row
+     * @param $href
+     * @param $label
+     * @param $title
+     * @param $icon
+     * @param $attributes
+     * @return string
+     */
     public function printerIcon($row, $href, $label, $title, $icon, $attributes)
     {
         return '<a href="' . $this->addToUrl($href . '&amp;id=' . $row['id']) . '" title="drucken"' . $attributes . '>' . $this->generateImage($icon, $label) . '</a> ';
@@ -374,6 +420,10 @@ class tl_athletenumfrage extends Backend
         }
     }
 
+    /**
+     * Input field callback
+     * @return string
+     */
     public function tableOverviewInputFieldCallback()
     {
         $mySql = $this->Database->prepare("SELECT * FROM " . $this->strTable . " WHERE id=?")
@@ -407,55 +457,24 @@ class tl_athletenumfrage extends Backend
     }
 
     /**
-     * PDF Output mit fpdf Klasse
+     * Docx output
      */
     public function drucken()
     {
-        //Athletennamen laden
-        $result = $this->Database->prepare("SELECT pid FROM tl_athletenumfrage WHERE id = ?")
-            ->execute($this->Input->get('id'));
-        $result_user = $this->Database->prepare("SELECT name FROM tl_user WHERE id = ?")
-            ->execute($result->pid);
-        //Datensatz laden
-        $dataset = $this->Database->prepare("SELECT * FROM tl_athletenumfrage WHERE id=?")
-            ->execute($this->Input->get('id'));
-        $row = $dataset->fetchAssoc();
-        $pdf = new MyPdf();
-        $pdf->athlete_name = $result_user->name;
-        $pdf->AliasNbPages();
-        $pdf->AddPage();
-        $pdf->SetFont('Times', '', 12);
-        foreach ($GLOBALS['TL_DCA']['tl_athletenumfrage']['fields'] as $key => $value)
+
+        $objAthletenumfrage = Markocupic\RszAthletenumfrageBundle\Model\AthletenumfrageModel::findByPk(\Contao\Input::get('id'));
+        if($objAthletenumfrage !== null)
         {
-            $fieldname = iconv('UTF-8', 'ISO-8859-1', html_entity_decode($GLOBALS['TL_LANG']['tl_athletenumfrage'][$key][0]));
-            $value = $row[$key];
-            if ($key == 'tstamp')
-            {
-                continue;
-            }
-            if ($key == 'username')
-            {
-                $value = $result_user->name;
-            }
-            $pdf->SetFont('Arial', 'B', 9);
-            $pdf->Cell(100, 8, $fieldname);
-            $pdf->SetX(100);
-            /*
-            Breite 180mm, H�he 10mm
-            $string = Text schreiben
-            B = nur Rahmen unten zeichnen
-            L = Text linksb�ndig
-            0 = ohne F�llung
-            */
-            $pdf->SetFont('Arial', '', 9);
-            $pdf->MultiCell(90, 4, html_entity_decode(utf8_decode($value)), 0, 'L', 0);
-            $pdf->Ln(1);
-            $pdf->Cell(190, 1, '', 'B');
-            $pdf->Ln(3);
+            \Contao\Controller::loadDataContainer('tl_athletenumfrage');
+            \Contao\Controller::loadLanguageFile('tl_athletenumfrage');
+
+            $arrDca = $GLOBALS['TL_DCA']['tl_athletenumfrage'];
+            $arrLang = $GLOBALS['TL_LANG']['tl_athletenumfrage'];
+
+            /** @var Markocupic\RszAthletenumfrageBundle\Docx\Athletenumfrage $objPrint */
+            $objPrint = \Contao\System::getContainer()->get('Markocupic\RszAthletenumfrageBundle\Docx\Athletenumfrage');
+            $objPrint->print($objAthletenumfrage, $arrDca,  $arrLang);
         }
-        ob_end_clean();
-        $pdf->Output();
-        exit;
     }
 }
 
