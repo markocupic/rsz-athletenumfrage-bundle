@@ -36,7 +36,7 @@ $GLOBALS['TL_DCA']['tl_athletenumfrage'] = [
         ],
         'label'             => [
             'fields'         => ['username'],
-            'format'         => '<span style="color:#000; font-weight:bold;">%s</span> #datum#  #trainerkommentar#',
+            'format'         => '<span>#name#</span> #datum#  #trainerkommentar#',
             'label_callback' => ['tl_athletenumfrage', 'labelCallback']
         ],
         'global_operations' => [
@@ -269,47 +269,46 @@ class tl_athletenumfrage extends Backend
     public $pid;
 
     /**
-     * @var string
-     */
-    public $username;
-
-    /**
-     * @var string
-     */
-    public $strTable;
-
-    /**
      * tl_athletenumfrage constructor.
      */
     public function __construct()
     {
         parent::__construct();
 
-        $this->strTable = "tl_athletenumfrage";
-
         $this->import('BackendUser', 'User');
 
-        if (\Contao\Input::get('id'))
+        if (Contao\Input::get('id'))
         {
-            $objAthletenumfrage = \Contao\Database::getInstance()->prepare("SELECT pid FROM tl_athletenumfrage WHERE id=?")
-                ->execute(\Contao\Input::get('id'));
+            $objAthletenumfrage = Contao\Database::getInstance()->prepare("SELECT pid FROM tl_athletenumfrage WHERE id=?")
+                ->execute(Contao\Input::get('id'));
 
-            $objAthlet = \Contao\Database::getInstance()->prepare("SELECT id, username FROM tl_user WHERE id=?")
+            $objAthlet = Contao\Database::getInstance()->prepare("SELECT id, username FROM tl_user WHERE id=?")
                 ->execute($objAthletenumfrage->pid);
 
-            $this->username = $objAthlet->username;
             $this->pid = $objAthlet->id;
         }
     }
 
     /**
-     *
+     * Router
      */
     public function route()
     {
-        if (\Contao\Input::get('action') === 'drucken')
+        if (Contao\Input::get('action') === 'drucken')
         {
-            $this->drucken();
+            $objAthletenumfrage = Markocupic\RszAthletenumfrageBundle\Model\AthletenumfrageModel::findByPk(Contao\Input::get('id'));
+            if ($objAthletenumfrage !== null)
+            {
+                Contao\Controller::loadDataContainer('tl_athletenumfrage');
+                Contao\Controller::loadLanguageFile('tl_athletenumfrage');
+
+                $arrDca = $GLOBALS['TL_DCA']['tl_athletenumfrage'];
+                $arrLang = $GLOBALS['TL_LANG']['tl_athletenumfrage'];
+
+                /** @var Markocupic\RszAthletenumfrageBundle\Docx\Athletenumfrage $objPrint */
+                $objPrint = Contao\System::getContainer()->get('Markocupic\RszAthletenumfrageBundle\Docx\Athletenumfrage');
+                $objPrint->print($objAthletenumfrage, $arrDca, $arrLang);
+            }
         }
     }
 
@@ -320,7 +319,7 @@ class tl_athletenumfrage extends Backend
     public function filterList()
     {
         //nur Admins haben Zugriff auf fremde Profile
-        $objUser = \Contao\Database::getInstance()->prepare("SELECT id FROM tl_athletenumfrage WHERE pid=?")
+        $objUser = Contao\Database::getInstance()->prepare("SELECT id FROM tl_athletenumfrage WHERE pid=?")
             ->execute($this->User->id);
 
         $this->User->funktion = is_array($this->User->funktion) ? $this->User->funktion : [];
@@ -338,11 +337,11 @@ class tl_athletenumfrage extends Backend
      */
     public function createProfiles()
     {
-        $objAthlete = \Contao\Database::getInstance()->prepare("SELECT id, username FROM tl_user WHERE funktion LIKE ? ORDER BY dateOfBirth")
+        $objAthlete = Contao\Database::getInstance()->prepare("SELECT id, username FROM tl_user WHERE funktion LIKE ? ORDER BY dateOfBirth")
             ->execute("%Athlet%");
         while ($objAthlete->next())
         {
-            $objAthletenumfrage = \Contao\Database::getInstance()->prepare("SELECT id FROM tl_athletenumfrage WHERE pid=?")
+            $objAthletenumfrage = Contao\Database::getInstance()->prepare("SELECT id FROM tl_athletenumfrage WHERE pid=?")
                 ->execute($objAthlete->id);
 
             if (!$objAthletenumfrage->numRows)
@@ -351,7 +350,7 @@ class tl_athletenumfrage extends Backend
                     'pid'      => $objAthlete->id,
                     'username' => $objAthlete->username
                 ];
-                \Contao\Database::getInstance()->prepare("INSERT INTO  tl_athletenumfrage %s")
+                Contao\Database::getInstance()->prepare("INSERT INTO  tl_athletenumfrage %s")
                     ->set($set)
                     ->execute();
             }
@@ -363,7 +362,7 @@ class tl_athletenumfrage extends Backend
      */
     public function checkPermission()
     {
-        if (\Contao\Input::get("action") === "drucken" || \Contao\Input::get("act") === "edit" || \Contao\Input::get("act") === "show" || \Contao\Input::get("act") === "delete")
+        if (Contao\Input::get("action") === "drucken" || Contao\Input::get("act") === "edit" || Contao\Input::get("act") === "show" || Contao\Input::get("act") === "delete")
         {
             if ($this->User->isAdmin)
             {
@@ -422,9 +421,20 @@ class tl_athletenumfrage extends Backend
      */
     public function labelCallback($row, $label)
     {
-        $result = \Contao\Database::getInstance()->prepare("SELECT trainerkommentar FROM tl_athletenumfrage WHERE id=?")
+        $objAthletenumfrage = Contao\Database::getInstance()->prepare("SELECT * FROM tl_athletenumfrage WHERE id=?")
+            ->limit(1)
             ->execute($row["id"]);
-        if (trim($result->trainerkommentar) != "")
+
+        $name = $objAthletenumfrage->username;
+
+        if (null !== ($objUser = \Contao\UserModel::findByPk($objAthletenumfrage->pid)))
+        {
+            $name = $objUser->name;
+        }
+
+        $label = str_replace("#name#", $name, $label);
+
+        if (trim($objAthletenumfrage->trainerkommentar) != "")
         {
             $label = str_replace("#trainerkommentar#", "[Kommentar vorh.]", $label);
         }
@@ -448,9 +458,9 @@ class tl_athletenumfrage extends Backend
      */
     public function tableOverviewInputFieldCallback()
     {
-        $mySql = \Contao\Database::getInstance()->prepare("SELECT * FROM " . $this->strTable . " WHERE id=?")
+        $mySql = Contao\Database::getInstance()->prepare("SELECT * FROM tl_athletenumfrage WHERE id=?")
             ->limit(1)
-            ->execute(\Contao\Input::get('id'));
+            ->execute(Contao\Input::get('id'));
         $row = $mySql->fetchAssoc();
         $i = 0;
         $output = '
@@ -469,7 +479,7 @@ class tl_athletenumfrage extends Backend
             }
             $output .= '
 				<tr>
-					<td style="width:50%; font-weight:bold; border:0; padding:8px 8px; ' . ($i % 2 ? 'background-color:#fff;' : 'background-color:#f6f6f6;') . '">' . $GLOBALS['TL_LANG'][$this->strTable][$key][0] . ':</td>
+					<td style="width:50%; font-weight:bold; border:0; padding:8px 8px; ' . ($i % 2 ? 'background-color:#fff;' : 'background-color:#f6f6f6;') . '">' . $GLOBALS['TL_LANG']['tl_athletenumfrage'][$key][0] . ':</td>
 					<td style="width:50%; border:0; padding:8px 8px; ' . ($i % 2 ? 'background-color:#fff;' : 'background-color:#f6f6f6;') . '">' . nl2br($row[$key]) . '</td>
 				</tr>';
             $i++;
@@ -478,24 +488,5 @@ class tl_athletenumfrage extends Backend
         return $output;
     }
 
-    /**
-     * Docx output
-     */
-    public function drucken()
-    {
-        $objAthletenumfrage = Markocupic\RszAthletenumfrageBundle\Model\AthletenumfrageModel::findByPk(\Contao\Input::get('id'));
-        if ($objAthletenumfrage !== null)
-        {
-            \Contao\Controller::loadDataContainer('tl_athletenumfrage');
-            \Contao\Controller::loadLanguageFile('tl_athletenumfrage');
-
-            $arrDca = $GLOBALS['TL_DCA']['tl_athletenumfrage'];
-            $arrLang = $GLOBALS['TL_LANG']['tl_athletenumfrage'];
-
-            /** @var Markocupic\RszAthletenumfrageBundle\Docx\Athletenumfrage $objPrint */
-            $objPrint = \Contao\System::getContainer()->get('Markocupic\RszAthletenumfrageBundle\Docx\Athletenumfrage');
-            $objPrint->print($objAthletenumfrage, $arrDca, $arrLang);
-        }
-    }
 }
 

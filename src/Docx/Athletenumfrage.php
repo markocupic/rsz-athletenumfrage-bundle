@@ -52,7 +52,7 @@ class Athletenumfrage
         /** @var UserModel $objUser */
         $objUser = $objAthletenumfrage->getRelated('pid');
 
-        $targetFilename = sprintf($this->targetFilename, str_replace(' ', '', strtolower($objUser->username)), time());
+        $targetFilename = sprintf($this->targetFilename, str_replace(' ', '', strtolower($objUser->username)), Date::parse('Y-m-d', time()));
 
         // Create template processor object
         $objPhpWord = new MsWordTemplateProcessor($this->templateSrc, $targetFilename);
