@@ -464,8 +464,9 @@ class tl_athletenumfrage extends Backend
         $row = $mySql->fetchAssoc();
         $i = 0;
         $output = '
-			<h1>R&uuml;ckmeldeergebnisse</h1>
-			<table cellpadding="0" cellspacing="0" summary="Table lists all details of an entry">
+			<div class="widget">
+			<br>
+			<table style="width:100%" cellpadding="0" cellspacing="0" summary="Table lists all details of an entry">
 		';
         foreach ($GLOBALS['TL_DCA']['tl_athletenumfrage']['fields'] as $key => $content)
         {
@@ -484,7 +485,7 @@ class tl_athletenumfrage extends Backend
 				</tr>';
             $i++;
         }
-        $output .= '</table>';
+        $output .= '</table><br><br></div>';
         return $output;
     }
 
