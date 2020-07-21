@@ -12,7 +12,7 @@
 /**
  * Backend modules
  */
-$GLOBALS['BE_MOD']['Athletenumfragen']['tl_athletenumfrage'] = [
+$GLOBALS['BE_MOD']['rsz_tools']['tl_athletenumfrage'] = [
     'tables' => ['tl_athletenumfrage']
 ];
 
