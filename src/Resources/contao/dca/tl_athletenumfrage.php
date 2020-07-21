@@ -57,7 +57,8 @@ $GLOBALS['TL_DCA']['tl_athletenumfrage'] = [
                 'href'            => 'action=drucken',
                 'label'           => 'drucken',
                 'title'           => 'drucken',
-                'icon'            => 'bundles/markocupicrszathletenumfrage/printer.png',
+                'class'           => 'icon_16',
+                'icon'            => 'bundles/markocupicrszathletenumfrage/word_icon.svg',
                 'button_callback' => ['tl_athletenumfrage', 'printerIcon']
             ],
             'show'    => [
