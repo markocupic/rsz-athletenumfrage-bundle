@@ -13,3 +13,4 @@ Diese Erweiterung ist neben `phpoffice/phpspreadsheet` von folgender Erweiterung
     "markocupic/rsz-benutzerverwaltung-bundle": "dev-master",
   },
 ```
+  
