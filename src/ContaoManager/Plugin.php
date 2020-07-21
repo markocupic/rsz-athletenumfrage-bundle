@@ -30,7 +30,8 @@ class Plugin implements BundlePluginInterface, ConfigPluginInterface
     {
         return [
             BundleConfig::create('Markocupic\RszAthletenumfrageBundle\MarkocupicRszAthletenumfrageBundle')
-                ->setLoadAfter(['Contao\CoreBundle\ContaoCoreBundle']),
+                ->setLoadAfter(['Contao\CoreBundle\ContaoCoreBundle'])
+                ->setLoadAfter(['Markocupic\RszBenutzerverwaltungBundle\MarkocupicRszBenutzerverwaltungBundle'])
         ];
     }
 
