@@ -95,7 +95,7 @@ $GLOBALS['TL_DCA']['tl_athletenumfrage'] = [
             'flag'                 => 1,
             'eval'                 => [],
             'input_field_callback' => ['tl_athletenumfrage', 'tableOverviewInputFieldCallback'],
-            'sql'                  => "text NOT NULL default=''"
+            'sql'                  => "text NOT NULL default ''"
         ],
         'tstamp'                      => [
             'inputType' => 'textarea',
@@ -105,156 +105,156 @@ $GLOBALS['TL_DCA']['tl_athletenumfrage'] = [
         'username'                    => [
             'inputType' => 'text',
             'eval'      => ['submitOnChange' => true, 'readonly' => true, 'style' => 'width:30%', 'allowHtml' => false],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'ziele_indoor'                => [
             'inputType' => 'textarea',
             'eval'      => ['submitOnChange' => true, 'style' => 'height:7em; overflow:auto; width:80%', 'allowHtml' => false, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'ziele_outdoor'               => [
             'inputType' => 'textarea',
             'eval'      => ['submitOnChange' => true, 'style' => 'height:7em; overflow:auto; width:80%', 'allowHtml' => false, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'ziele_wettkampf'             => [
             'inputType' => 'textarea',
             'eval'      => ['submitOnChange' => true, 'style' => 'height:7em; overflow:auto; width:80%', 'allowHtml' => false, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'ziele_allgemein'             => [
             'inputType' => 'textarea',
             'eval'      => ['submitOnChange' => true, 'style' => 'height:7em; overflow:auto; width:80%', 'allowHtml' => false, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'fortschritte'                => [
             'inputType' => 'textarea',
             'eval'      => ['submitOnChange' => true, 'style' => 'height:7em; overflow:auto; width:80%', 'allowHtml' => false, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'anz_trainings'               => [
             'inputType' => 'select',
             'options'   => ['1', '2', '3', '4', '5'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'trainingsspass'              => [
             'inputType' => 'select',
             'options'   => ['1', '2', '3', '4'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'pos_training'                => [
             'inputType' => 'textarea',
             'eval'      => ['submitOnChange' => true, 'style' => 'height:7em; overflow:auto; width:80%', 'allowHtml' => false, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'neg_training'                => [
             'inputType' => 'textarea',
             'eval'      => ['submitOnChange' => true, 'style' => 'height:7em; overflow:auto; width:80%', 'allowHtml' => false, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'trainingseffizienz'          => [
             'inputType' => 'select',
             'options'   => ['1', '2', '3', '4'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'selbstvertrauen_training'    => [
             'inputType' => 'select',
             'options'   => ['1', '2', '3', '4'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'selbstvertrauen_wettkaempfe' => [
             'inputType' => 'select',
             'options'   => ['1', '2', '3', '4'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'trainingsplan'               => [
             'inputType' => 'select',
             'options'   => ['ja', 'nein'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'rumpfkrafttraining'          => [
             'inputType' => 'select',
             'options'   => ['1x/Woche', '2x/Woche', '3x/Woche', '4x/Woche', '5x/Woche'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'ausdauertraining'            => [
             'inputType' => 'select',
             'options'   => ['1x/Woche', '2x/Woche', '3x/Woche', '4x/Woche', '5x/Woche'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'trainingstagebuch'           => [
             'inputType' => 'select',
             'options'   => ['ja', 'nein'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'kletterleistung_indoor_rp'   => [
             'inputType' => 'select',
             'options'   => ['6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'kletterleistung_outdoor_rp'  => [
             'inputType' => 'select',
             'options'   => ['6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'boulderleistung_indoor'      => [
             'inputType' => 'select',
             'options'   => ['B1', 'B2', 'B3', 'B4', 'B5', 'B6'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'boulderleistung_outdoor'     => [
             'inputType' => 'select',
             'options'   => ['fb6b', 'fb6b+', 'fb6c', 'fb6c+', 'fb7a', 'fb7a+', 'fb7b', 'fb7b+', 'fb7c', 'fb7c+', 'fb8a', 'fb8a+', 'fb8b', 'fb8b+', 'fb8c'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'speed_nutzung'               => [
             'inputType' => 'textarea',
             'eval'      => ['submitOnChange' => true, 'style' => 'height:7em; overflow:auto; width:80%', 'allowHtml' => false],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'speed_verbesserung'          => [
             'inputType' => 'textarea',
             'eval'      => ['submitOnChange' => true, 'style' => 'height:7em; overflow:auto; width:80%', 'allowHtml' => false],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'umgang_mit_druck'            => [
             'inputType' => 'textarea',
             'eval'      => ['submitOnChange' => true, 'style' => 'height:7em; overflow:auto; width:80%', 'allowHtml' => false],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'gruende_mitgliedschaft'      => [
             'inputType' => 'textarea',
             'eval'      => ['submitOnChange' => true, 'style' => 'height:7em; overflow:auto; width:80%', 'allowHtml' => false, 'tl_class' => 'w50'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'funktion_next_year'          => [
             'inputType' => 'select',
             'options'   => ['Athlet', 'Athlet und Trainer', 'Trainer', 'Austritt'],
             'eval'      => ['submitOnChange' => true, 'includeBlankOption' => true, 'tl_class' => 'clr'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'allgemeines'                 => [
             'inputType' => 'textarea',
             'eval'      => ['submitOnChange' => true, 'style' => 'height:7em; overflow:auto; width:80%;', 'allowHtml' => false, 'tl_class' => 'clr'],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ],
         'trainerkommentar'            => [
             'inputType' => 'textarea',
             'eval'      => ['submitOnChange' => true, 'style' => 'height:15em; overflow:auto; width:95%;', 'allowHtml' => false],
-            'sql'       => "text NOT NULL default=''"
+            'sql'       => "text NOT NULL default ''"
         ]
     ]
 ];
