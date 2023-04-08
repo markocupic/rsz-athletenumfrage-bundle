@@ -2,19 +2,31 @@
 
 declare(strict_types=1);
 
+/*
+ * This file is part of RSZ Athletenumfrage Bundle.
+ *
+ * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
+ * @license MIT
+ * For the full copyright and license information,
+ * please view the LICENSE file that was distributed with this source code.
+ * @link https://github.com/markocupic/rsz-athletenumfrage-bundle
+ */
+
 namespace Markocupic\RszAthletenumfrageBundle\DataContainer;
 
 use Contao\Backend;
 use Contao\Controller;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
-use Contao\Database;
+use Contao\DataContainer;
 use Contao\Date;
 use Contao\Image;
 use Contao\UserModel;
+use Doctrine\DBAL\Connection;
 use Markocupic\RszAthletenumfrageBundle\Docx\DocxGenerator;
 use Markocupic\RszAthletenumfrageBundle\Model\AthletenumfrageModel;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Security;
+use Twig\Environment as Twig;
 
 class Athletenumfrage extends Backend
 {
@@ -22,7 +34,9 @@ class Athletenumfrage extends Backend
 
     public function __construct(
         private readonly RequestStack $requestStack,
+        private readonly Connection $connection,
         private readonly DocxGenerator $docxGenerator,
+        private readonly Twig $twig,
         private readonly Security $security,
     ) {
         parent::__construct();
@@ -30,17 +44,31 @@ class Athletenumfrage extends Backend
         $request = $this->requestStack->getCurrentRequest();
 
         if ($request->query->has('id')) {
-            $objAthletenumfrage = Database::getInstance()
-                ->prepare('SELECT pid FROM tl_athletenumfrage WHERE id = ?')
-                ->execute($request->query->get('id'))
-            ;
+            $this->pid = $this->connection->fetchOne('SELECT pid FROM tl_athletenumfrage WHERE id = ?', [
+                $request->query->get('id'),
+            ]);
+        }
+    }
 
-            $objAthlet = Database::getInstance()
-                ->prepare('SELECT id, username FROM tl_user WHERE id = ?')
-                ->execute($objAthletenumfrage->pid)
-            ;
+    /**
+     * Create a blanco survey from every athlete, if there is no.
+     */
+    #[AsCallback(table: 'tl_athletenumfrage', target: 'config.onload', priority: 255)]
+    public function createProfiles(): void
+    {
+        $result = $this->connection->executeQuery('SELECT id, username FROM tl_user WHERE funktion LIKE ? ORDER BY dateOfBirth', ['%Athlet%']);
 
-            $this->pid = (int) $objAthlet->id;
+        $rows = $result->fetchAllAssociative();
+
+        foreach ($rows as $row) {
+            if (false === $this->connection->fetchOne('SELECT id FROM tl_athletenumfrage WHERE pid = ?', [$row['id']])) {
+                $set = [
+                    'pid' => $row['id'],
+                    'username' => $row['username'],
+                ];
+
+                $this->connection->insert('tl_athletenumfrage', $set);
+            }
         }
     }
 
@@ -73,11 +101,6 @@ class Athletenumfrage extends Backend
         $user = $this->security->getUser();
 
         // Nur Admins und Trainer haben Zugriff auf fremde Umfragen
-        Database::getInstance()
-            ->prepare('SELECT id FROM tl_athletenumfrage WHERE pid = ?')
-            ->execute($user->id)
-        ;
-
         $roles = $user->funktion ?? [];
 
         if (\in_array('Trainer', $roles, true) || $this->security->isGranted('ROLE_ADMIN')) {
@@ -85,37 +108,6 @@ class Athletenumfrage extends Backend
         }
 
         $GLOBALS['TL_DCA']['tl_athletenumfrage']['list']['sorting']['filter'] = [['pid = ?', $user->id]];
-    }
-
-    /**
-     * Create a blanco survey from every athlete, if there is no.
-     */
-    #[AsCallback(table: 'tl_athletenumfrage', target: 'config.onload', priority: 100)]
-    public function createProfiles(): void
-    {
-        $objAthlete = Database::getInstance()
-            ->prepare('SELECT id, username FROM tl_user WHERE funktion LIKE ? ORDER BY dateOfBirth')
-            ->execute('%Athlet%')
-        ;
-
-        while ($objAthlete->next()) {
-            $objAthletenumfrage = Database::getInstance()
-                ->prepare('SELECT id FROM tl_athletenumfrage WHERE pid = ?')
-                ->execute($objAthlete->id)
-            ;
-
-            if (!$objAthletenumfrage->numRows) {
-                $set = [
-                    'pid' => $objAthlete->id,
-                    'username' => $objAthlete->username,
-                ];
-
-                Database::getInstance()->prepare('INSERT INTO  tl_athletenumfrage %s')
-                    ->set($set)
-                    ->execute()
-                ;
-            }
-        }
     }
 
     #[AsCallback(table: 'tl_athletenumfrage', target: 'config.onload', priority: 100)]
@@ -154,8 +146,7 @@ class Athletenumfrage extends Backend
 
         // Athlete
         if ($this->pid === (int) $user->id) {
-            $GLOBALS['TL_DCA']['tl_athletenumfrage']['palettes']['default'] = $GLOBALS['TL_DCA']['tl_athletenumfrage']['palettes']['athlete'];
-            $GLOBALS['TL_DCA']['tl_athletenumfrage']['fields']['trainerkommentar']['eval']['style'] = str_replace($GLOBALS['TL_DCA']['tl_athletenumfrage']['fields']['trainerkommentar']['eval']['style'], $GLOBALS['TL_DCA']['tl_athletenumfrage']['fields']['trainerkommentar']['eval']['style'].'" readonly="readonly', $GLOBALS['TL_DCA']['tl_athletenumfrage']['fields']['trainerkommentar']['eval']['style']);
+            $GLOBALS['TL_DCA']['tl_athletenumfrage']['fields']['trainerkommentar']['eval']['readonly'] = 'true';
         }
     }
 
@@ -168,69 +159,45 @@ class Athletenumfrage extends Backend
     #[AsCallback(table: 'tl_athletenumfrage', target: 'list.label.label', priority: 100)]
     public function labelCallback(array $row, string $label): string
     {
-        $objAthletenumfrage = Database::getInstance()
-            ->prepare('SELECT * FROM tl_athletenumfrage WHERE id = ?')
-            ->limit(1)
-            ->execute($row['id'])
-        ;
+        $arrSurvey = $row;
 
-        $name = $objAthletenumfrage->username;
+        $name = $arrSurvey['username'];
 
-        if (null !== ($objUser = UserModel::findByPk($objAthletenumfrage->pid))) {
+        if (null !== ($objUser = UserModel::findByPk($arrSurvey['pid']))) {
             $name = $objUser->name;
         }
 
         $label = str_replace('#name#', $name, $label);
 
-        if ('' !== trim((string) $objAthletenumfrage->trainerkommentar)) {
+        if ('' !== trim((string) $arrSurvey['trainerkommentar'])) {
             $label = str_replace('#trainerkommentar#', '[Kommentar vorh.]', $label);
         } else {
             $label = str_replace('#trainerkommentar#', '', $label);
         }
 
-        if (0 === $row['tstamp']) {
+        if (0 === $arrSurvey['tstamp']) {
             return str_replace('#datum#', '', $label);
         }
 
-        return str_replace('#datum#', Date::parse('[D, d.m.Y, H:i]', $row['tstamp']), $label);
+        return str_replace('#datum#', Date::parse('[D, d.m.Y, H:i]', $arrSurvey['tstamp']), $label);
     }
 
-    #[AsCallback(table: 'tl_athletenumfrage', target: 'fields.tableOverview.input_field', priority: 100)]
-    public function tableOverviewInputFieldCallback(): string
+    #[AsCallback(table: 'tl_athletenumfrage', target: 'fields.summary.input_field', priority: 100)]
+    public function getSummaryTable(DataContainer $dc, string $label): string
     {
-        $request = $this->requestStack->getCurrentRequest();
+        $row = $this->connection->fetchAssociative('SELECT * FROM tl_athletenumfrage WHERE id = ?', [$dc->id]);
 
-        $mySql = Database::getInstance()->prepare('SELECT * FROM tl_athletenumfrage WHERE id = ?')
-            ->limit(1)
-            ->execute($request->query->get('id'))
-        ;
+        unset($row['id'], $row['pid'], $row['tstamp'], $row['summary']);
 
-        $row = $mySql->fetchAssoc();
+        Controller::loadLanguageFile('tl_athletenumfrage');
 
-        $i = 0;
-        $output = '
-			<div class="widget">
-			<br>
-			<table style="width:100%">
-		';
-
-        foreach (array_keys($GLOBALS['TL_DCA']['tl_athletenumfrage']['fields']) as $key) {
-            if ('tableOverview' === $key) {
-                continue;
-            }
-
-            if ('id' === $key || 'pid' === $key || 'tstamp' === $key) {
-                continue;
-            }
-            $output .= '
-				<tr>
-					<td style="width:50%; font-weight:bold; border:0; padding:8px 8px; '.($i % 2 ? 'background-color:#fff;' : 'background-color:#f6f6f6;').'">'.$GLOBALS['TL_LANG']['tl_athletenumfrage'][$key][0].':</td>
-					<td style="width:50%; border:0; padding:8px 8px; '.($i % 2 ? 'background-color:#fff;' : 'background-color:#f6f6f6;').'">'.nl2br((string) $row[$key]).'</td>
-				</tr>';
-            ++$i;
-        }
-        $output .= '</table><br><br></div>';
-
-        return $output;
+        return $this->twig->render(
+            '@MarkocupicRszAthletenumfrage/survey.html.twig',
+            [
+                'keys' => array_keys($row),
+                'row' => $row,
+                'lang' => $GLOBALS['TL_LANG']['tl_athletenumfrage'],
+            ]
+        );
     }
 }

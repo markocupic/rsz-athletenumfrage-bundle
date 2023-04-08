@@ -1,12 +1,5 @@
 <?php
 
-/**
- * @copyright  Marko Cupic 2023 <m.cupic@gmx.ch>
- * @license    MIT
- *
- * @see        https://github.com/markocupic/rsz-athletenumfrage-bundle
- */
-
 declare(strict_types=1);
 
 /*
@@ -31,10 +24,6 @@ class DocxGenerator
     private const TEMPLATE_SRC = 'vendor/markocupic/rsz-athletenumfrage-bundle/contao/templates/docx/athletenumfrage.docx';
     private const TARGET_FILENAME = 'system/tmp/athletenumfrage_%s_%s.docx';
 
-    public function __construct()
-    {
-    }
-
     public function print(AthletenumfrageModel $objAthletenumfrage, array $arrDca, array $arrLang): void
     {
         /** @var UserModel $objUser */
@@ -54,7 +43,7 @@ class DocxGenerator
             if (
                 'id' === $fieldName ||
                 'pid' === $fieldName ||
-                'tableOverview' === $fieldName ||
+                'summary' === $fieldName ||
                 'tstamp' === $fieldName ||
                 'username' === $fieldName ||
                 'trainerkommentar' === $fieldName

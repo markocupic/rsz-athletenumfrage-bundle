@@ -1,12 +1,5 @@
 <?php
 
-/**
- * @copyright  Marko Cupic 2023 <m.cupic@gmx.ch>
- * @license    MIT
- *
- * @see        https://github.com/markocupic/rsz-athletenumfrage-bundle
- */
-
 declare(strict_types=1);
 
 /*

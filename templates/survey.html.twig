@@ -1,0 +1,14 @@
+<div class="widget">
+    <br>
+    <table style="width:100%">
+        {% for key in keys %}
+            <tr>
+                {% set bg_color = loop.index is even ? '#f9f9f9' : '#ffffff' %}
+                <td style="width:50%; border:0; font-weight: bold; padding:8px; background-color:{{ bg_color }}">{{ lang[key][0] }}:</td>
+                <td style="width:50%; border:0; padding:8px; background-color:{{ bg_color }}">{{ row[key]|nl2br }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <br>
+</div>
