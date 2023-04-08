@@ -1,50 +1,37 @@
 <?php
 
-/**
- * @copyright  Marko Cupic 2020 <m.cupic@gmx.ch>
- * @author     Marko Cupic
- * @package    RSZ AthletenumfrageBundle
- * @license    MIT
- * @see        https://github.com/markocupic/rsz-athletenumfrage-bundle
+declare(strict_types=1);
+
+/*
+ * This file is part of RSZ Athletenumfrage Bundle.
  *
+ * (c) Marko Cupic 2023 <m.cupic@gmx.ch>
+ * @license MIT
+ * For the full copyright and license information,
+ * please view the LICENSE file that was distributed with this source code.
+ * @link https://github.com/markocupic/rsz-athletenumfrage-bundle
  */
 
 namespace Markocupic\RszAthletenumfrageBundle\ContaoManager;
 
+use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\ManagerPlugin\Bundle\BundlePluginInterface;
 use Contao\ManagerPlugin\Bundle\Config\BundleConfig;
 use Contao\ManagerPlugin\Bundle\Parser\ParserInterface;
-use Contao\ManagerPlugin\Config\ConfigPluginInterface;
-use Symfony\Component\Config\Loader\LoaderInterface;
+use Markocupic\RszAthletenumfrageBundle\MarkocupicRszAthletenumfrageBundle;
+use Markocupic\RszBenutzerverwaltungBundle\MarkocupicRszBenutzerverwaltungBundle;
 
-/**
- * Class Plugin
- * @package Markocupic\RszAthletenumfrageBundle\ContaoManager
- */
-class Plugin implements BundlePluginInterface, ConfigPluginInterface
+class Plugin implements BundlePluginInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function getBundles(ParserInterface $parser)
+    public function getBundles(ParserInterface $parser): array
     {
         return [
-            BundleConfig::create('Markocupic\RszAthletenumfrageBundle\MarkocupicRszAthletenumfrageBundle')
-                ->setLoadAfter(['Contao\CoreBundle\ContaoCoreBundle'])
-                ->setLoadAfter(['Markocupic\RszBenutzerverwaltungBundle\MarkocupicRszBenutzerverwaltungBundle'])
+            BundleConfig::create(MarkocupicRszAthletenumfrageBundle::class)
+                ->setLoadAfter([ContaoCoreBundle::class])
+                ->setLoadAfter([MarkocupicRszBenutzerverwaltungBundle::class]),
         ];
     }
-
-    /**
-     * @param LoaderInterface $loader
-     * @param array $managerConfig
-     * @throws \Exception
-     */
-    public function registerContainerConfiguration(LoaderInterface $loader, array $managerConfig)
-    {
-        $loader->load(__DIR__ . '/../Resources/config/parameters.yml');
-        $loader->load(__DIR__ . '/../Resources/config/services.yml');
-        $loader->load(__DIR__ . '/../Resources/config/listener.yml');
-    }
 }
-

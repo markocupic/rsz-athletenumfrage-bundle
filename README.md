@@ -1,4 +1,4 @@
-![Alt text](src/Resources/public/rsz-logo.png?raw=true "Regionalzentrum Sportklettern Zentralschweiz")
+![Regionalzentrum Sportklettern Zentralschweiz](docs/rsz-logo.png?raw=true "Regionalzentrum Sportklettern Zentralschweiz")
 
 
 # RSZ Athletenumfrage
