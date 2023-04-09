@@ -32,3 +32,8 @@ $GLOBALS['TL_MODELS']['tl_athletenumfrage'] = \Markocupic\RszAthletenumfrageBund
 $GLOBALS['TL_PURGE']['custom']['rsz_athletenumfrage'] = [
     'callback' => [MaintainModuleAthletenumfrage::class, 'truncateAthletenumfrage'],
 ];
+
+/**
+ * Backend permissions
+ */
+$GLOBALS['TL_PERMISSIONS'][] = 'rsz_athletenumfragep';

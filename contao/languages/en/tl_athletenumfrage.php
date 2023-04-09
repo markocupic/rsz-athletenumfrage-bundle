@@ -18,7 +18,9 @@ $int_next_year = $int_last_year + 1;
 /**
  * Operations
  */
-$GLOBALS['TL_LANG']['tl_athletenumfrage']['show'] = ['Details der Athletenumfrage', 'Details der Athletenumfrage ID %s anzeigen'];
+$GLOBALS['TL_LANG']['tl_athletenumfrage']['edit'] = ['Umfrage bearbeiten', 'Umfrage mit ID %d bearbeiten.'];
+$GLOBALS['TL_LANG']['tl_athletenumfrage']['printSurvey'] = ['Umfrage ausdrucken', 'Umfrage mit ID %d ausdrucken.'];
+$GLOBALS['TL_LANG']['tl_athletenumfrage']['printSurvey'] = ['Details ansehen', 'Details der Umfrge mit ID %d ansehen.'];
 
 /**
  * Legends

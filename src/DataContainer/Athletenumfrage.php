@@ -15,15 +15,19 @@ declare(strict_types=1);
 namespace Markocupic\RszAthletenumfrageBundle\DataContainer;
 
 use Contao\Backend;
+use Contao\BackendUser;
 use Contao\Controller;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
 use Contao\DataContainer;
 use Contao\Date;
 use Contao\Image;
+use Contao\Message;
+use Contao\StringUtil;
 use Contao\UserModel;
 use Doctrine\DBAL\Connection;
 use Markocupic\RszAthletenumfrageBundle\Docx\DocxGenerator;
 use Markocupic\RszAthletenumfrageBundle\Model\AthletenumfrageModel;
+use Markocupic\RszAthletenumfrageBundle\Security\RszBackendPermissions;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Security;
 use Twig\Environment as Twig;
@@ -54,17 +58,45 @@ class Athletenumfrage extends Backend
      * Create a blanco survey from every athlete, if there is no.
      */
     #[AsCallback(table: 'tl_athletenumfrage', target: 'config.onload', priority: 255)]
-    public function createProfiles(): void
+    public function createEmptySurveys(): void
     {
-        $result = $this->connection->executeQuery('SELECT id, username FROM tl_user WHERE funktion LIKE ? ORDER BY dateOfBirth', ['%Athlet%']);
 
-        $rows = $result->fetchAllAssociative();
+        $result = $this->connection->executeQuery('SELECT * FROM tl_user');
+        $users = $result->fetchAllAssociative();
 
-        foreach ($rows as $row) {
-            if (false === $this->connection->fetchOne('SELECT id FROM tl_athletenumfrage WHERE pid = ?', [$row['id']])) {
+        foreach ($users as $user) {
+            if ($this->connection->fetchOne('SELECT id FROM tl_athletenumfrage WHERE pid = ?', [$user['id']])) {
+                continue;
+            }
+
+            $blnInsert = false;
+
+            if (!empty($user['rsz_athletenumfragep']) && str_contains($user['rsz_athletenumfragep'], 'can_fill_in_survey')) {
+                $blnInsert = true;
+            }
+
+            // Check in groups user belongs to
+            if (!$blnInsert) {
+                $arrGroupsUserBelongsTo = StringUtil::deserialize($user['groups'], true);
+
+                if (!empty($arrGroupsUserBelongsTo)) {
+                    $sqlQuery = sprintf(
+                        "SELECT id FROM tl_user_group WHERE rsz_athletenumfragep LIKE '%s' AND id IN (%s)",
+                        '%can_fill_in_survey%',
+                        implode(',', array_map('\intval', $arrGroupsUserBelongsTo)),
+                    );
+
+                    if ($this->connection->fetchOne($sqlQuery)) {
+                        $blnInsert = true;
+                    }
+                }
+            }
+
+            // Insert empty record
+            if ($blnInsert) {
                 $set = [
-                    'pid' => $row['id'],
-                    'username' => $row['username'],
+                    'pid' => $user['id'],
+                    'username' => $user['username'],
                 ];
 
                 $this->connection->insert('tl_athletenumfrage', $set);
@@ -77,7 +109,7 @@ class Athletenumfrage extends Backend
     {
         $request = $this->requestStack->getCurrentRequest();
 
-        if ('drucken' === $request->query->get('action')) {
+        if ('print_survey' === $request->query->get('action')) {
             $objAthletenumfrage = AthletenumfrageModel::findByPk($request->query->get('id'));
 
             if (null !== $objAthletenumfrage) {
@@ -92,30 +124,27 @@ class Athletenumfrage extends Backend
         }
     }
 
-    /**
-     * Filter list for athletes.
-     */
     #[AsCallback(table: 'tl_athletenumfrage', target: 'config.onload', priority: 100)]
     public function filterList(): void
     {
-        $user = $this->security->getUser();
-
-        // Nur Admins und Trainer haben Zugriff auf fremde Umfragen
-        $roles = $user->funktion ?? [];
-
-        if (\in_array('Trainer', $roles, true) || $this->security->isGranted('ROLE_ADMIN')) {
+        if ($this->security->isGranted('ROLE_ADMIN')) {
             return;
         }
 
-        $GLOBALS['TL_DCA']['tl_athletenumfrage']['list']['sorting']['filter'] = [['pid = ?', $user->id]];
+        if ($this->security->isGranted(RszBackendPermissions::USER_CAN_ACCESS_RSZ_ATHLETENUMFRAGE, 'has_access_to_surveys')) {
+            return;
+        }
+
+        // Athletes has access to their own survey only
+        $GLOBALS['TL_DCA']['tl_athletenumfrage']['list']['sorting']['filter'] = [['pid = ?', $this->security->getUser()->id]];
     }
 
-    #[AsCallback(table: 'tl_athletenumfrage', target: 'config.onload', priority: 100)]
+    #[AsCallback(table: 'tl_athletenumfrage', target: 'config.onload', priority: 200)]
     public function checkPermission(): void
     {
         $request = $this->requestStack->getCurrentRequest();
 
-        if ('drucken' === $request->query->get('action') || 'edit' === $request->query->get('act') || 'show' === $request->query->get('act') || 'delete' === $request->query->get('act')) {
+        if ('print_survey' === $request->query->get('action') || 'edit' === $request->query->get('act') || 'show' === $request->query->get('act') || 'delete' === $request->query->get('act')) {
             $user = $this->security->getUser();
 
             if ($this->security->isGranted('ROLE_ADMIN')) {
@@ -126,9 +155,11 @@ class Athletenumfrage extends Backend
                 return;
             }
 
-            if (\in_array('Trainer', $user->funktion, true)) {
+            if ($this->security->isGranted(RszBackendPermissions::USER_CAN_ACCESS_RSZ_ATHLETENUMFRAGE, 'has_access_to_surveys')) {
                 return;
             }
+
+            Message::addError($GLOBALS['TL_LANG']['MSC']['athletenumfrageAccessDenied']);
 
             $this->redirect('contao?do=tl_athletenumfrage');
         }
@@ -137,10 +168,14 @@ class Athletenumfrage extends Backend
     #[AsCallback(table: 'tl_athletenumfrage', target: 'config.onload', priority: 100)]
     public function setPalette(): void
     {
+        if ($this->security->isGranted('ROLE_ADMIN')) {
+            return;
+        }
+
         $user = $this->security->getUser();
 
-        // Trainer
-        if (\in_array('Trainer', $user->funktion, true) || $this->security->isGranted('ROLE_ADMIN')) {
+        // Super users
+        if ($this->security->isGranted(RszBackendPermissions::USER_CAN_ACCESS_RSZ_ATHLETENUMFRAGE, 'has_access_to_surveys')) {
             $GLOBALS['TL_DCA']['tl_athletenumfrage']['palettes']['default'] = $GLOBALS['TL_DCA']['tl_athletenumfrage']['palettes']['trainer'];
         }
 
@@ -150,10 +185,10 @@ class Athletenumfrage extends Backend
         }
     }
 
-    #[AsCallback(table: 'tl_athletenumfrage', target: 'list.operations.drucken.button', priority: 100)]
+    #[AsCallback(table: 'tl_athletenumfrage', target: 'list.operations.printSurvey.button', priority: 100)]
     public function printerIcon(array $row, string $href, string $label, string $title, string $icon, string $attributes): string
     {
-        return '<a href="'.$this->addToUrl($href.'&amp;id='.$row['id']).'" title="drucken"'.$attributes.'>'.Image::getHtml($icon, $label).'</a> ';
+        return '<a href="'.$this->addToUrl($href.'&amp;id='.$row['id']).'" title="'.StringUtil::specialcharsAttribute($label).'"'.$attributes.'>'.Image::getHtml($icon, $label).'</a> ';
     }
 
     #[AsCallback(table: 'tl_athletenumfrage', target: 'list.label.label', priority: 100)]
@@ -183,7 +218,7 @@ class Athletenumfrage extends Backend
     }
 
     #[AsCallback(table: 'tl_athletenumfrage', target: 'fields.summary.input_field', priority: 100)]
-    public function getSummaryTable(DataContainer $dc, string $label): string
+    public function generateSummaryTable(DataContainer $dc, string $label): string
     {
         $row = $this->connection->fetchAssociative('SELECT * FROM tl_athletenumfrage WHERE id = ?', [$dc->id]);
 
