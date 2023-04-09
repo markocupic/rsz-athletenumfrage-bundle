@@ -15,7 +15,6 @@ declare(strict_types=1);
 namespace Markocupic\RszAthletenumfrageBundle\DataContainer;
 
 use Contao\Backend;
-use Contao\BackendUser;
 use Contao\Controller;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsCallback;
 use Contao\DataContainer;
@@ -60,7 +59,6 @@ class Athletenumfrage extends Backend
     #[AsCallback(table: 'tl_athletenumfrage', target: 'config.onload', priority: 255)]
     public function createEmptySurveys(): void
     {
-
         $result = $this->connection->executeQuery('SELECT * FROM tl_user');
         $users = $result->fetchAllAssociative();
 

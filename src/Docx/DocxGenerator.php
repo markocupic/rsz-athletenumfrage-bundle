@@ -22,14 +22,27 @@ use Markocupic\RszAthletenumfrageBundle\Model\AthletenumfrageModel;
 class DocxGenerator
 {
     private const TEMPLATE_SRC = 'vendor/markocupic/rsz-athletenumfrage-bundle/contao/templates/docx/athletenumfrage.docx';
-    private const TARGET_FILENAME = 'system/tmp/athletenumfrage_%s_%s.docx';
+    private const TARGET_FILENAME = '%s/athletenumfrage_%s_%s.docx';
 
+    /**
+     * @param AthletenumfrageModel $objAthletenumfrage
+     * @param array $arrDca
+     * @param array $arrLang
+     * @return void
+     * @throws \PhpOffice\PhpWord\Exception\CopyFileException
+     * @throws \PhpOffice\PhpWord\Exception\CreateTemporaryFileException
+     */
     public function print(AthletenumfrageModel $objAthletenumfrage, array $arrDca, array $arrLang): void
     {
         /** @var UserModel $objUser */
         $objUser = $objAthletenumfrage->getRelated('pid');
 
-        $targetFilename = sprintf(self::TARGET_FILENAME, strtolower($objUser->username), Date::parse('Y-m-d', time()));
+        $targetFilename = sprintf(
+            self::TARGET_FILENAME,
+            sys_get_temp_dir(),
+            strtolower($objUser->username),
+            Date::parse('Y-m-d', time()),
+        );
 
         // Create template processor object
         $objPhpWord = new MsWordTemplateProcessor(self::TEMPLATE_SRC, $targetFilename);
@@ -39,15 +52,16 @@ class DocxGenerator
         $objPhpWord->replace('date', Date::parse('d.m.Y', $objAthletenumfrage->tstamp));
         $objPhpWord->replace('trainerkommentar', $objUser->trainerkommentar);
 
+        $arrSkip = [
+            'id',
+            'pid',
+            'summary',
+            'tstamp',
+            'username',
+            'trainerkommentar'
+        ];
         foreach (array_keys($arrDca['fields']) as $fieldName) {
-            if (
-                'id' === $fieldName ||
-                'pid' === $fieldName ||
-                'summary' === $fieldName ||
-                'tstamp' === $fieldName ||
-                'username' === $fieldName ||
-                'trainerkommentar' === $fieldName
-            ) {
+            if (in_array($fieldName, $arrSkip)){
                 continue;
             }
 
