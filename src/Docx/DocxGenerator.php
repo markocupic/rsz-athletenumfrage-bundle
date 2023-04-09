@@ -18,6 +18,8 @@ use Contao\Date;
 use Contao\UserModel;
 use Markocupic\PhpOffice\PhpWord\MsWordTemplateProcessor;
 use Markocupic\RszAthletenumfrageBundle\Model\AthletenumfrageModel;
+use PhpOffice\PhpWord\Exception\CopyFileException;
+use PhpOffice\PhpWord\Exception\CreateTemporaryFileException;
 
 class DocxGenerator
 {
@@ -25,18 +27,15 @@ class DocxGenerator
     private const TARGET_FILENAME = '%s/athletenumfrage_%s_%s.docx';
 
     /**
-     * @param AthletenumfrageModel $objAthletenumfrage
-     * @param array $arrDca
-     * @param array $arrLang
-     * @return void
-     * @throws \PhpOffice\PhpWord\Exception\CopyFileException
-     * @throws \PhpOffice\PhpWord\Exception\CreateTemporaryFileException
+     * @throws CopyFileException
+     * @throws CreateTemporaryFileException
      */
     public function print(AthletenumfrageModel $objAthletenumfrage, array $arrDca, array $arrLang): void
     {
         /** @var UserModel $objUser */
         $objUser = $objAthletenumfrage->getRelated('pid');
 
+        // Save file in the system temp directory.
         $targetFilename = sprintf(
             self::TARGET_FILENAME,
             sys_get_temp_dir(),
@@ -58,10 +57,11 @@ class DocxGenerator
             'summary',
             'tstamp',
             'username',
-            'trainerkommentar'
+            'trainerkommentar',
         ];
+
         foreach (array_keys($arrDca['fields']) as $fieldName) {
-            if (in_array($fieldName, $arrSkip)){
+            if (\in_array($fieldName, $arrSkip, true)) {
                 continue;
             }
 
