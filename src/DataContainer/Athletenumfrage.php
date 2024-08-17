@@ -28,7 +28,7 @@ use Markocupic\RszAthletenumfrageBundle\Docx\DocxGenerator;
 use Markocupic\RszAthletenumfrageBundle\Model\AthletenumfrageModel;
 use Markocupic\RszAthletenumfrageBundle\Security\RszBackendPermissions;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Twig\Environment as Twig;
 
 class Athletenumfrage extends Backend
